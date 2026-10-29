@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import path from "node:path";
+import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes.js";
@@ -20,7 +21,21 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 dotenv.config({ path: path.resolve(__dirname, "../../server/.env") });
 
 const app = express();
-const clientDist = path.resolve(__dirname, "../../client/dist");
+
+const findClientDist = () => {
+  const candidates = [
+    path.resolve(__dirname, "../../client/dist"),
+    path.resolve(process.cwd(), "client/dist"),
+    path.resolve(process.cwd(), "public"),
+    path.resolve(process.cwd(), "dist"),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, "index.html"))) return c;
+  }
+  return path.resolve(__dirname, "../../client/dist");
+};
+
+const clientDist = findClientDist();
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
